@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import { useTodoStore } from '../stores/todoStore';
 import { useAuthStore } from '../stores/auth';
 import TodoCard from '../components/TodoCards.vue';
@@ -8,6 +8,7 @@ import { plusIcon, deleteIcon } from '../assets';
 
 const todoStore = useTodoStore();
 const authStore = useAuthStore();
+
 
 interface User {
   name?: string;
@@ -97,7 +98,7 @@ const deleteAllTodos = async () => {
       <template v-if="todoStore.todos.filter(todo => !todo.done).length > 0">
         <TodoCard
           v-for="(todo, filteredIndex) in todoStore.todos.filter(todo => !todo.done)"
-          :key="filteredIndex"
+          :key="todo.id"
           :activity="todo.title"
           :done="todo.done"
           :index="todoStore.todos.indexOf(todo)"

@@ -1,21 +1,36 @@
-// stores/auth.ts
 import { defineStore } from 'pinia';
-import axios from 'axios';
+import { useTodoStore } from './todoStore';
+import axios from '@/utils/axios';
 import { ref, computed } from 'vue';
 import router from '@/router';
 
+interface User {
+  id: number;
+  name: string;
+  email: string;
+  // Add any other properties as needed
+}
+
 export const useAuthStore = defineStore('auth', () => {
-  const user = ref(null);
-  const token = ref(localStorage.getItem('token') || '');
+  const user = ref<User | null>(localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user') as string) : null);
+  const token = ref<string>(localStorage.getItem('token') || '');
+  const todoStore = useTodoStore();
 
   const setToken = (newToken: string) => {
     token.value = newToken;
     localStorage.setItem('token', newToken);
   };
 
+  const setUser = (newUser: User) => {
+    user.value = newUser;
+    localStorage.setItem('user', JSON.stringify(newUser));
+  };
+
   const clearToken = () => {
     token.value = '';
     localStorage.removeItem('token');
+    localStorage.removeItem('todo');
+    localStorage.removeItem('user')
   };
 
   const login = async (credentials: { email: string, password: string }) => {
@@ -23,6 +38,7 @@ export const useAuthStore = defineStore('auth', () => {
       const response = await axios.post('/api/auth/login', credentials);
       setToken(response.data.access_token);
       await fetchUser();
+      await todoStore.getTodos();
       router.push({ name: 'home' });
     } catch (error) {
       console.error('Login error:', error);
@@ -63,7 +79,7 @@ export const useAuthStore = defineStore('auth', () => {
           Authorization: `Bearer ${token.value}`,
         },
       });
-      user.value = response.data;
+      setUser(response.data)
     } catch (error) {
       console.error('Fetch user error:', error);
       logout();

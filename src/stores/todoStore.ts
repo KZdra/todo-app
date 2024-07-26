@@ -1,8 +1,10 @@
 import { defineStore } from 'pinia';
-import { reactive, ref, toRefs } from 'vue';
+import { reactive, toRefs } from 'vue';
 import Swal from 'sweetalert2';
+import axios from '@/utils/axios';
 
 interface Todo {
+  id: number;
   title: string;
   done: boolean;
 }
@@ -13,9 +15,34 @@ export const useTodoStore = defineStore('todo', () => {
     newTodo: ''
   });
 
+  const getTodos = async () => {
+    try {
+      const response = await axios.get('/api/auth/todos', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        }
+      });
 
+      const data = response.data.data;
 
-  const addTodo = () => {
+      state.todos = data.map((item: any) => ({
+        id: item.id,
+        title: item.activity,
+        done: item.done === 1
+      }));
+
+    } catch (error) {
+      Swal.fire({
+        title: "Error",
+        text: (error as Error).message,
+        icon: "error",
+        confirmButtonText: "OK"
+      });
+    }
+  };
+
+  const addTodo = async () => {
     if (state.newTodo.trim() === '') {
       Swal.fire({
         title: "Empty Todo",
@@ -30,8 +57,26 @@ export const useTodoStore = defineStore('todo', () => {
 
     if (duplicate) {
       if (duplicate.done) {
-        state.todos.push({ title: state.newTodo.trim(), done: false });
-        state.newTodo = '';
+        try {
+          const response = await axios.post('/api/auth/todos', {
+            activity: state.newTodo.trim()
+          }, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`,
+              'Content-Type': 'application/json'
+            }
+          });
+
+          state.todos.push({ id: response.data.data.id, title: state.newTodo.trim(), done: false });
+          state.newTodo = '';
+        } catch (error) {
+          Swal.fire({
+            title: "Error",
+            text: (error as Error).message,
+            icon: "error",
+            confirmButtonText: "OK"
+          });
+        }
       } else {
         Swal.fire({
           title: "Duplicate Todo",
@@ -41,25 +86,121 @@ export const useTodoStore = defineStore('todo', () => {
         });
       }
     } else {
-      state.todos.push({ title: state.newTodo.trim(), done: false });
-      state.newTodo = '';
+      try {
+        const response = await axios.post('/api/auth/todos', {
+          activity: state.newTodo.trim()
+        }, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        state.todos.push({ id: response.data.data.id, title: state.newTodo.trim(), done: false });
+        state.newTodo = '';
+      } catch (error) {
+        Swal.fire({
+          title: "Error",
+          text: (error as Error).message,
+          icon: "error",
+          confirmButtonText: "OK"
+        });
+      }
     }
   };
 
-  const deleteAllUndoneTodos = () => {
-    state.todos = state.todos.filter(todo => todo.done);
+  const deleteAllUndoneTodos = async () => {
+    const undoneTodos = state.todos.filter(todo => !todo.done);
+
+    try {
+      await Promise.all(undoneTodos.map(todo => 
+        axios.delete(`/api/auth/todos/${todo.id}`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            'Content-Type': 'application/json'
+          }
+        })
+      ));
+
+      state.todos = state.todos.filter(todo => todo.done);
+    } catch (error) {
+      Swal.fire({
+        title: "Error",
+        text: (error as Error).message,
+        icon: "error",
+        confirmButtonText: "OK"
+      });
+    }
   };
 
-  const deleteAllDoneTodos = () => {
-    state.todos = state.todos.filter(todo => !todo.done);
+  const deleteAllDoneTodos = async () => {
+    const doneTodos = state.todos.filter(todo => todo.done);
+    try {
+      await Promise.all(doneTodos.map(todo => 
+        axios.delete(`/api/auth/todos/${todo.id}`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            'Content-Type': 'application/json'
+          }
+        })
+      ));
+
+      state.todos = state.todos.filter(todo => !todo.done);
+    } catch (error) {
+      Swal.fire({
+        title: "Error",
+        text: (error as Error).message,
+        icon: "error",
+        confirmButtonText: "OK"
+      });
+    }
   };
 
-  const markDone = (index: number) => {
-    state.todos[index].done = !state.todos[index].done;
+  const markDone = async (index: number) => {
+    const todo = state.todos[index];
+    const updatedDoneStatus = !todo.done;
+
+    try {
+      await axios.put(`/api/auth/todos/${todo.id}`, {
+        done: updatedDoneStatus ? 1 : 0
+      }, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      state.todos[index].done = updatedDoneStatus;
+    } catch (error) {
+      Swal.fire({
+        title: "Error",
+        text: (error as Error).message,
+        icon: "error",
+        confirmButtonText: "OK"
+      });
+    }
   };
 
-  const deleteTodo = (index: number) => {
-    state.todos.splice(index, 1);
+  const deleteTodo = async (index: number) => {
+    const todo = state.todos[index];
+
+    try {
+      await axios.delete(`/api/auth/todos/${todo.id}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      state.todos.splice(index, 1);
+    } catch (error) {
+      Swal.fire({
+        title: "Error",
+        text: (error as Error).message,
+        icon: "error",
+        confirmButtonText: "OK"
+      });
+    }
   };
 
   return {
@@ -68,7 +209,8 @@ export const useTodoStore = defineStore('todo', () => {
     deleteAllUndoneTodos,
     deleteAllDoneTodos,
     markDone,
-    deleteTodo
+    deleteTodo,
+    getTodos
   };
 }, {
   persist: true,
