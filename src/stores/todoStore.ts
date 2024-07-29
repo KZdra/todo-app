@@ -159,17 +159,20 @@ export const useTodoStore = defineStore('todo', () => {
   const markDone = async (index: number) => {
     const todo = state.todos[index];
     const updatedDoneStatus = !todo.done;
-
+  
     try {
+      Swal.fire({
+        position: "top-end",
+        icon: "success",
+        title: "DONE SIR",
+        showConfirmButton: false,
+        timer: 1200
+      });
+  
       await axios.put(`/api/auth/todos/${todo.id}`, {
         done: updatedDoneStatus ? 1 : 0
-      }, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json'
-        }
       });
-
+  
       state.todos[index].done = updatedDoneStatus;
     } catch (error) {
       Swal.fire({
@@ -180,6 +183,7 @@ export const useTodoStore = defineStore('todo', () => {
       });
     }
   };
+  
 
   const deleteTodo = async (index: number) => {
     const todo = state.todos[index];

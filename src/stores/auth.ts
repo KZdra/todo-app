@@ -3,6 +3,7 @@ import { useTodoStore } from './todoStore';
 import axios from '@/utils/axios';
 import { ref, computed } from 'vue';
 import router from '@/router';
+import Swal from 'sweetalert2';
 
 interface User {
   id: number;
@@ -41,8 +42,9 @@ export const useAuthStore = defineStore('auth', () => {
       await todoStore.getTodos();
       router.push({ name: 'home' });
     } catch (error) {
-      console.error('Login error:', error);
+     
       throw error;
+      // console.error('Login error:', error);
     }
   };
 

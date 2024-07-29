@@ -8,12 +8,6 @@ import { plusIcon, deleteIcon } from '../assets';
 const todoStore = useTodoStore();
 const newTodo = ref('');
 
-
-const addTodo = (event: Event) => {
-  event.preventDefault();
-  todoStore.addTodo();
-};
-
 const deleteAllDoneTodos = async () => {
   const result = await Swal.fire({
     title: 'Are you sure?',
@@ -42,7 +36,7 @@ const deleteAllDoneTodos = async () => {
 
     <!-- Add ToDo Form -->
     <div class="mt-2">
-      <form @submit="addTodo" class="w-full max-w-sm">
+      <form  class="w-full max-w-sm">
         
         <div class="md:flex md:items-center">
           <div class="md:w-2/3">

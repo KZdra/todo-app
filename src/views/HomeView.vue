@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { onMounted, onUpdated, ref } from 'vue';
 import { useTodoStore } from '../stores/todoStore';
 import { useAuthStore } from '../stores/auth';
 import TodoCard from '../components/TodoCards.vue';
@@ -8,6 +8,9 @@ import { plusIcon, deleteIcon } from '../assets';
 
 const todoStore = useTodoStore();
 const authStore = useAuthStore();
+
+
+
 
 
 interface User {

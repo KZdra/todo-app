@@ -1,15 +1,13 @@
 // router/index.ts
 import { createRouter, createWebHistory } from 'vue-router';
-import Login from '@/components/Login.vue';
-import Register from '@/components/Register.vue';
 import { useAuthStore } from '@/stores/auth';
 import { getActivePinia } from 'pinia';
 import { defineAsyncComponent } from 'vue';
 
 const routes = [
   { path: '/', name: 'home', component: ()=> defineAsyncComponent(()=>import('@/views/HomeView.vue')), meta: { requiresAuth: true } },
-  { path: '/login', name: 'login', component: Login },
-  { path: '/register', name: 'register', component: Register },
+  { path: '/login', name: 'login', component: ()=> import('@/components/Login.vue') },
+  { path: '/register', name: 'register', component: ()=> import('@/components/Register.vue') },
   { path: '/done', name: 'done', component: ()=> defineAsyncComponent(()=>import('@/views/ListDoneView.vue')), meta: { requiresAuth: true } },
 ];
 
