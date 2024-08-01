@@ -77,9 +77,6 @@ export const useAuthStore = defineStore('auth', () => {
   const fetchUser = async () => {
     try {
       const response = await axios.post('/api/auth/me', {}, {
-        headers: {
-          Authorization: `Bearer ${token.value}`,
-        },
       });
       setUser(response.data)
     } catch (error) {
@@ -93,7 +90,6 @@ export const useAuthStore = defineStore('auth', () => {
       const response = await axios.post('/api/auth/refresh', {}, {
         headers: {
           Accept: 'application/json',
-          Authorization: `Bearer ${token.value}`,
         },
       });
       setToken(response.data.access_token);

@@ -62,8 +62,7 @@ export const useTodoStore = defineStore('todo', () => {
             activity: state.newTodo.trim()
           }, {
             headers: {
-              'Authorization': `Bearer ${localStorage.getItem('token')}`,
-              'Content-Type': 'application/json'
+                'Content-Type': 'application/json'
             }
           });
 
@@ -91,7 +90,6 @@ export const useTodoStore = defineStore('todo', () => {
           activity: state.newTodo.trim()
         }, {
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
             'Content-Type': 'application/json'
           }
         });
@@ -116,7 +114,6 @@ export const useTodoStore = defineStore('todo', () => {
       await Promise.all(undoneTodos.map(todo => 
         axios.delete(`/api/auth/todos/${todo.id}`, {
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
             'Content-Type': 'application/json'
           }
         })
@@ -139,7 +136,6 @@ export const useTodoStore = defineStore('todo', () => {
       await Promise.all(doneTodos.map(todo => 
         axios.delete(`/api/auth/todos/${todo.id}`, {
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
             'Content-Type': 'application/json'
           }
         })
