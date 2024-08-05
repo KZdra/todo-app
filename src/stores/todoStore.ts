@@ -19,7 +19,6 @@ export const useTodoStore = defineStore('todo', () => {
     try {
       const response = await axios.get('/api/auth/todos', {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
           'Content-Type': 'application/json'
         }
       });
@@ -187,7 +186,6 @@ export const useTodoStore = defineStore('todo', () => {
     try {
       await axios.delete(`/api/auth/todos/${todo.id}`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
           'Content-Type': 'application/json'
         }
       });

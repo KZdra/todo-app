@@ -20,13 +20,22 @@ router.beforeEach(async (to, from, next) => {
   const pinia = getActivePinia();
   if (pinia) {
     const authStore = useAuthStore(pinia);
-    if (to.meta.requiresAuth && !authStore.user) {
+
+    // Refresh the token if it's present in cookies but not in the store
+    if (authStore.token && !authStore.isAuthenticated) {
       try {
+        await authStore.refreshToken();
         await authStore.fetchUser();
-        next();
-      } catch {
+      } catch (error) {
+        authStore.clearToken();
         next({ name: 'login' });
+        return;
       }
+    }
+
+    // Check if the route requires authentication
+    if (to.meta.requiresAuth && !authStore.isAuthenticated) {
+      next({ name: 'login' });
     } else {
       next();
     }

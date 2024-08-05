@@ -3,7 +3,8 @@ import { useTodoStore } from './todoStore';
 import axios from '@/utils/axios';
 import { ref, computed } from 'vue';
 import router from '@/router';
-import Swal from 'sweetalert2';
+import Cookies from 'js-cookie';
+import { handleError } from '@/utils/errorHandler'; // Import error handler
 
 interface User {
   id: number;
@@ -14,12 +15,12 @@ interface User {
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user') as string) : null);
-  const token = ref<string>(localStorage.getItem('token') || '');
+  const token = ref<string>(Cookies.get('token') || '');
   const todoStore = useTodoStore();
 
   const setToken = (newToken: string) => {
     token.value = newToken;
-    localStorage.setItem('token', newToken);
+    Cookies.set('token', newToken, { expires: 2 });
   };
 
   const setUser = (newUser: User) => {
@@ -29,12 +30,12 @@ export const useAuthStore = defineStore('auth', () => {
 
   const clearToken = () => {
     token.value = '';
-    localStorage.removeItem('token');
+    Cookies.remove('token');
+    localStorage.removeItem('user');
     localStorage.removeItem('todo');
-    localStorage.removeItem('user')
   };
 
-  const login = async (credentials: { email: string, password: string }) => {
+  const login = async (credentials: { email: string; password: string }) => {
     try {
       const response = await axios.post('/api/auth/login', credentials);
       setToken(response.data.access_token);
@@ -42,45 +43,38 @@ export const useAuthStore = defineStore('auth', () => {
       await todoStore.getTodos();
       router.push({ name: 'home' });
     } catch (error) {
-     
-      throw error;
-      // console.error('Login error:', error);
+      handleError(error);
+      console.log(error);// Use error handler
     }
   };
 
-  const register = async (credentials: { name: string, email: string, password: string }) => {
+  const register = async (credentials: { name: string; email: string; password: string }) => {
     try {
       await axios.post('/api/auth/register', credentials);
       await login(credentials);
     } catch (error) {
-      console.error('Register error:', error);
-      throw error;
+      handleError(error); // Use error handler
     }
   };
 
   const logout = async () => {
     try {
-      await axios.post('/api/auth/logout', {}, {
-        headers: {
-          Authorization: `Bearer ${token.value}`,
-        },
-      });
+      await axios.post('/api/auth/logout', {}, {});
       clearToken();
       user.value = null;
       router.push({ name: 'login' });
     } catch (error) {
-      console.error('Logout error:', error);
-      throw error;
+      handleError(error); // Use error handler
     }
   };
 
   const fetchUser = async () => {
     try {
-      const response = await axios.post('/api/auth/me', {}, {
-      });
-      setUser(response.data)
+      const response = await axios.post('/api/auth/me', {});
+      const { id, name, email } = response.data;
+      setUser({ id, name, email });
     } catch (error) {
-      console.error('Fetch user error:', error);
+      handleError(error); // Use error handler
       logout();
     }
   };
@@ -94,12 +88,12 @@ export const useAuthStore = defineStore('auth', () => {
       });
       setToken(response.data.access_token);
     } catch (error) {
-      console.error('Refresh token error:', error);
+      handleError(error); // Use error handler
       logout();
     }
   };
 
   const isAuthenticated = computed(() => !!token.value);
 
-  return { user, token, login, register, logout, fetchUser, refreshToken, isAuthenticated };
+  return { user, token, login, register, logout, fetchUser, refreshToken, isAuthenticated, clearToken };
 });
